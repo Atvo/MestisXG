@@ -1,0 +1,36 @@
+version: '3'
+services:
+  database:
+    image: 'mongo'
+    container_name: 'mongodb'
+    environment:
+      - MONGO_INITDB_DATABASE=statsDB
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - '27017-27019:27017-27019'
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: 'backend'
+    environment:
+      - FLASK_ENV=development
+    ports:
+      - '5000:5000'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ~/.composer-docker/cache:/root/.composer/cache:delegated
+      - ./frontend/:/app:cached
+    working_dir: /app
+    container_name: frontend
+    ports:
+      - '8080:8080'
